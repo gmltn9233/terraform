@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
     bucket = "000630-jeff"
-    key    = "alb/terraform.tfstate"
+    key    = "alb/front/terraform.tfstate"
     region = "ap-northeast-2"
   }
 }
@@ -19,18 +19,9 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-data "terraform_remote_state" "front" {
-  backend = "s3"
-  config = {
-    bucket = "000630-jeff"
-    key    = "front/terraform.tfstate"
-    region = "ap-northeast-2"
-  }
-}
-
 # ALB 보안그룹 생성
-resource "aws_security_group" "alb_sg" {
-  name   = "Jeff-ALB-SG"
+resource "aws_security_group" "alb_front_sg" {
+  name   = "Jeff-ALB-FRONT-SG"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -49,22 +40,22 @@ resource "aws_security_group" "alb_sg" {
   }
 
   tags = {
-    Name = "Jeff-ALB-SG"
+    Name = "Jeff-ALB-FRONT-SG"
   }
 }
 
 # ALB 생성
 resource "aws_lb" "front_alb" {
-  name               = "Jeff-ALB"
+  name               = "Jeff-ALB-FRONT"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg.id]
+  security_groups    = [aws_security_group.alb_front_sg.id]
   subnets = [
     data.terraform_remote_state.vpc.outputs.pub_sub_A_id,
     data.terraform_remote_state.vpc.outputs.pub_sub_C_id
   ]
 
   tags = {
-    Name = "Jeff-ALB"
+    Name = "Jeff-ALB-FRONT"
   }
 }

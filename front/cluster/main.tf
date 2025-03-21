@@ -47,7 +47,7 @@ resource "aws_security_group" "front_sg" {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [data.terraform_remote_state.alb.outputs.alb_sg]
+    security_groups = [data.terraform_remote_state.alb.outputs.alb_front_sg]
   }
 
   ingress {
