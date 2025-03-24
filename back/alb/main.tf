@@ -41,6 +41,15 @@ resource "aws_security_group" "alb_back_sg" {
     security_groups = [data.terraform_remote_state.front.outputs.front_sg_id]
   }
 
+  # ALB에서 백엔드 (8080)으로 요청 전달 허용
+  ingress {
+    description     = "Allow ALB to send traffic to backend"
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

@@ -19,7 +19,7 @@ data "terraform_remote_state" "alb" {
   backend = "s3"
   config = {
     bucket = "000630-jeff"
-    key    = "alb/terraform.tfstate"
+    key    = "alb/front/terraform.tfstate"
     region = "ap-northeast-2"
   }
 }

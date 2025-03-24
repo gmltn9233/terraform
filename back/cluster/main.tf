@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "ap=northeast-2"
+  region = "ap-northeast-2"
 }
 
 data "terraform_remote_state" "vpc" {
@@ -15,7 +15,7 @@ data "terraform_remote_state" "alb" {
   backend = "s3"
   config = {
     bucket = "000630-jeff"
-    key    = "alb/terraform.tfstate"
+    key    = "alb/back/terraform.tfstate"
     region = "ap-northeast-2"
   }
 }
@@ -74,17 +74,18 @@ resource "aws_instance" "back_server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              yum update -y
-              amazon-linux-extras install docker -y
-              service docker start
-              usermod -a -G docker ec2-user
+              # 시스템 업데이트 및 Docker 설치
+              apt-get update -y
+              apt-get install -y docker.io
 
-              # 예시 Spring Boot Docker 이미지 실행 (hello-world app)
-              docker run -d -p 8080:8080 jeonguk/spring-boot-hello-world
-
-              # 부팅 시 자동 실행 설정
+              # Docker 데몬 시작 및 자동 시작 설정
+              systemctl start docker
               systemctl enable docker
-            EOF
+
+              # 예제 Spring Boot 이미지 다운로드 및 실행
+              docker pull springio/gs-spring-boot-docker
+              docker run -d --name spring-demo -p 8080:8080 springio/gs-spring-boot-docker
+              EOF
 
   tags = {
     Name = "Jeff-Backend-Server"
@@ -115,6 +116,17 @@ resource "aws_lb_target_group" "back_tg" {
   }
 }
 
+# ALB Listner 생성
+resource "aws_lb_listener" "back_listner" {
+  load_balancer_arn = data.terraform_remote_state.alb.outputs.back_alb_arn
+  port = 80
+  protocol = "HTTP"
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.back_tg.arn
+  }
+}
 
 # ALB와 백엔드 서버 인스턴스 연결
 resource "aws_lb_target_group_attachment" "back_attachment" {
