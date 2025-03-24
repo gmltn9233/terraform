@@ -11,6 +11,15 @@ data "terraform_remote_state" "front" {
   }
 }
 
+data "terraform_remote_state" "back" {
+  backend = "s3"
+  config = {
+    bucket = "000630-jeff"
+    key    = "back/terraform.tfstate"
+    region = "ap-northeast-2"
+  }
+}
+
 # S3 버킷 생성
 
 resource "aws_s3_bucket" "codedeploy_bucket" {
@@ -86,4 +95,40 @@ resource "aws_codedeploy_deployment_group" "frontend" {
   }
 
   autoscaling_groups = [data.terraform_remote_state.front.outputs.front_asg_name]
+}
+
+
+# 백엔드
+
+resource "aws_codedeploy_deployment_group" "backend" {
+  app_name              = aws_codedeploy_app.app.name
+  deployment_group_name = "backend-group"
+  service_role_arn      = aws_iam_role.codedeploy_role.arn
+
+  deployment_style {
+    // 현재 실행중인 인스턴스에 덮어쓰기
+    deployment_type   = "IN_PLACE"
+    deployment_option = "WITH_TRAFFIC_CONTROL"
+  }
+
+  ec2_tag_set {
+    ec2_tag_filter {
+      key   = "Role"
+      type  = "KEY_AND_VALUE"
+      value = "backend"
+    }
+  }
+
+  auto_rollback_configuration {
+    enabled = true
+    events  = ["DEPLOYMENT_FAILURE"]
+  }
+
+  load_balancer_info {
+    target_group_info {
+      name = data.terraform_remote_state.back.outputs.back_tg_name
+    }
+  }
+
+  autoscaling_groups = [data.terraform_remote_state.back.outputs.back_asg_name]
 }
