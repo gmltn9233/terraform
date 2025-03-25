@@ -2,6 +2,14 @@ provider "aws" {
   region = "ap-northeast-2"
 }
 
+terraform {
+  backend "s3" {
+    bucket = "000630-jeff"
+    key    = "openvpn/terraform.tfstate"
+    region = "ap-northeast-2"
+  }
+}
+
 data "terraform_remote_state" "vpc" {
   backend = "s3"
   config = {

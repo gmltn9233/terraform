@@ -112,8 +112,8 @@ resource "aws_launch_template" "back_lt" {
   systemctl enable codedeploy-agent
 
   # 예제 Spring Boot 이미지 다운로드 및 실행
-  docker pull springio/gs-spring-boot-docker
-  docker run -d --name spring-demo -p 8080:8080 springio/gs-spring-boot-docker
+  docker pull nginx
+  docker run -d --name my-nginx -p 8080:80 nginx
 EOF
   )
 
@@ -136,6 +136,7 @@ resource "aws_autoscaling_group" "back_asg" {
   min_size            = 1
   max_size            = 1
   health_check_type   = "EC2"
+
   launch_template {
     id      = aws_launch_template.back_lt.id
     version = "$Latest"
@@ -161,18 +162,19 @@ resource "aws_autoscaling_group" "back_asg" {
 # Target Group 생성 (백엔드 서버 등록)
 
 resource "aws_lb_target_group" "back_tg" {
-  name     = "Jeff-Back-TG"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = data.terraform_remote_state.vpc.outputs.vpc_id
+  name                 = "Jeff-Back-TG"
+  port                 = 8080
+  protocol             = "HTTP"
+  vpc_id               = data.terraform_remote_state.vpc.outputs.vpc_id
+  deregistration_delay = 30
 
   health_check {
     path                = "/"
     protocol            = "HTTP"
-    healthy_threshold   = 3
+    healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 5
-    interval            = 30
+    interval            = 20
     matcher             = "200-399"
   }
 
