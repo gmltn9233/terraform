@@ -1,7 +1,7 @@
 # Terraform 실행 순서 지정
 DIRS := \
-	vpc \
 	backend \
+	vpc \
 	openvpn \
 	front/alb \
 	front/cluster \
@@ -45,8 +45,8 @@ REVERSE_DIRS := \
 	front/cluster \
 	front/alb \
 	openvpn \
-	backend \
-	vpc
+	vpc \
+	backend
 
 destroy:
 	@for dir in $(REVERSE_DIRS); do \

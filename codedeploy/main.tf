@@ -20,17 +20,6 @@ data "terraform_remote_state" "back" {
   }
 }
 
-# S3 버킷 생성
-
-resource "aws_s3_bucket" "codedeploy_bucket" {
-  bucket = "jeff-codedeploy-bucket"
-
-  tags = {
-    Name = "codedeploy-bucket"
-  }
-}
-
-
 # codedeploy role 부여
 
 resource "aws_iam_role" "codedeploy_role" {
