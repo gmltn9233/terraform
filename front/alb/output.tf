@@ -7,3 +7,7 @@ output "front_alb_arn" {
   description = "front_alb_arn"
   value       = aws_lb.front_alb.arn
 }
+
+output "front_alb_dns_name" {
+  value = aws_lb.front_alb.dns_name
+}
